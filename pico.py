@@ -29,10 +29,7 @@ brush_pwm = PWM(Pin(8))             # GPIO8: ブラシPWM
 brush_pwm.freq(1000)
 
 # 端検出モジュール（マイクロスイッチ）
-edge_sensor_front_left = Pin(9, Pin.IN, Pin.PULL_UP)    # GPIO9
-edge_sensor_front_center = Pin(10, Pin.IN, Pin.PULL_UP) # GPIO10
-edge_sensor_front_right = Pin(11, Pin.IN, Pin.PULL_UP)  # GPIO11
-edge_sensor_side = Pin(12, Pin.IN, Pin.PULL_UP)         # GPIO12
+edge_sensor = Pin(9, Pin.IN, Pin.PULL_UP)    # GPIO9
 
 # 操作モジュール（磁気センサー：ホールセンサ）
 magnetic_sensor_1 = Pin(13, Pin.IN, Pin.PULL_UP)  # GPIO13: 時計回り90°
@@ -56,6 +53,7 @@ edge_rotation_priority = False  # 端検出回転の優先フラグ
 normal_speed = 32768            # 通常走行速度（0～65535）
 rotation_speed = 26214          # 回転速度（約40%）
 mouth_open = False              # 口の開閉状態
+mouth_animation_counter = 0     # 口開閉アニメーションカウンタ
 last_button_state = 0           # ボタンの前回状態（チャタリング対策）
 last_button_time = 0            # ボタン押下時刻
 
@@ -207,16 +205,6 @@ def rotate_counterclockwise(angle):
     print("回転完了")
 
 # ==================== 端検出処理 ====================
-def check_edge_sensors():
-    """端検出センサーの確認"""
-    # マイクロスイッチはプルアップなので、押されると0（False）
-    if (edge_sensor_front_left.value() == 0 or 
-        edge_sensor_front_center.value() == 0 or 
-        edge_sensor_front_right.value() == 0 or 
-        edge_sensor_side.value() == 0):
-        return True
-    return False
-
 def edge_detected_handler():
     """端検出時の処理"""
     global edge_rotation_priority, rotation_in_progress
@@ -231,7 +219,7 @@ def edge_detected_handler():
     edge_rotation_priority = True
     
     # ランダム角度生成（100°～260°）
-    direction = random.choice([-1, 1])
+    direction = random.choice([-1, 1]) # type: ignore
     angle = random.randint(100, 260)
     
     if direction == 1:
@@ -250,10 +238,11 @@ def check_magnetic_sensors():
     """磁気センサーの確認"""
     global edge_rotation_priority
     
+    # 端回転中でなければ処理
     if is_running and not edge_rotation_priority and not rotation_in_progress:
         # センサー①：時計回り90°
         if magnetic_sensor_1.value() == 0:
-            print("磁気センサー① 検出")
+            print("磁気センサー1 検出")
             motor_left_stop()
             motor_right_stop()
             rotate_clockwise(90)
@@ -264,7 +253,7 @@ def check_magnetic_sensors():
         
         # センサー②：反時計回り90°
         if magnetic_sensor_2.value() == 0:
-            print("磁気センサー② 検出")
+            print("磁気センサー2 検出")
             motor_left_stop()
             motor_right_stop()
             rotate_counterclockwise(90)
@@ -275,7 +264,7 @@ def check_magnetic_sensors():
         
         # センサー③：180°回転
         if magnetic_sensor_3.value() == 0:
-            print("磁気センサー③ 検出")
+            print("磁気センサー3 検出")
             motor_left_stop()
             motor_right_stop()
             rotate_clockwise(180)
@@ -287,16 +276,14 @@ def check_magnetic_sensors():
     return False
 
 # ==================== 口開閉アニメーション ====================
-mouth_animation_counter = 0
-
 def update_mouth_animation():
     """口開閉アニメーション更新"""
     global mouth_open, mouth_animation_counter
     
     if is_running:
         mouth_animation_counter += 1
-        # 10回のループ（約1秒）ごとに開閉
-        if mouth_animation_counter >= 10:
+        # 20回のループ（約2秒）ごとに開閉
+        if mouth_animation_counter >= 20:
             mouth_animation_counter = 0
             if mouth_open:
                 servo_close_mouth()
@@ -312,40 +299,36 @@ def update_mouth_animation():
 
 # ==================== 起動・停止制御 ====================
 def check_start_button():
-    """起動ボタンのチェック（チャタリング対策付き）"""
-    global is_running, last_button_state, last_button_time
+    """起動スイッチのチェック（トグルスイッチ用）"""
+    global is_running, last_button_time
     
     current_state = start_button.value()
     current_time = time.ticks_ms()
     
-    # 立ち上がりエッジ検出＋チャタリング対策（50ms）
-    if (current_state == 1 and 
-        last_button_state == 0 and 
-        time.ticks_diff(current_time, last_button_time) > 50):
-        
-        toggle_system()
-        last_button_time = current_time
-    
-    last_button_state = current_state
+    # チャタリング対策（前回変化から50ms経過していないなら無視）
+    if time.ticks_diff(current_time, last_button_time) < 50:
+        return
 
-def toggle_system():
-    """起動/停止切り替え"""
-    global is_running
-    
-    if is_running:
-        # 停止処理
-        print("=== システム停止 ===")
-        is_running = False
-        stop_all_motors()
-    else:
-        # 起動処理
+    # スイッチがON(1) かつ システムが停止中なら -> 起動
+    if current_state == 1 and not is_running:
         print("=== システム起動 ===")
         is_running = True
         start_forward()
+        last_button_time = current_time # 変化時刻を更新
 
+    # スイッチがOFF(0) かつ システムが起動中なら -> 停止
+    elif current_state == 0 and is_running:
+        print("=== システム停止 ===")
+        is_running = False
+        stop_all_motors()
+        last_button_time = current_time # 変化時刻を更新
+
+# toggle_system関数は不要になりますが、残しておいても害はありません
 # ==================== メインループ ====================
 def main():
     """メインプログラム"""
+    global is_running
+
     # 初期化
     init_system()
     
@@ -360,7 +343,7 @@ def main():
             # システム動作中の処理
             if is_running:
                 # 端検出チェック
-                if check_edge_sensors():
+                if edge_sensor.value() == 0:
                     edge_detected_handler()
                 
                 # 磁気センサーチェック
