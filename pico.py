@@ -49,14 +49,14 @@ led = Pin("LED", Pin.OUT)
 is_running = False              # システム動作状態
 
 # ==================== モータ制御関数 ====================
-def drive_motor(p1, p2, pwm, speed):
+def drive_motor(in1, in2, pwm, speed):
     """モータ駆動ヘルパー関数"""
     if speed > 0:
-        p1.value(1); p2.value(0)
+        in1.value(1); in2.value(0)
     elif speed < 0:
-        p1.value(0); p2.value(1)
+        in1.value(0); in2.value(1)
     else:
-        p1.value(0); p2.value(0)
+        in1.value(0); in2.value(0)
     pwm.duty_u16(abs(speed))
 
 def drive(left_speed, right_speed):
@@ -266,5 +266,3 @@ def main():
 # ==================== プログラム開始 ====================
 if __name__ == "__main__":
     main()
-
-
