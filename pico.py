@@ -40,7 +40,7 @@ mouth_pin = PWM(Pin(16))          # GPIO16: サーボ信号
 mouth_pin.freq(50)                # 50Hz
 
 # 電源モジュール（起動ボタン）
-start_button = Pin(17, Pin.IN, Pin.PULL_DOWN)  # GPIO17
+start_switch = Pin(17, Pin.IN, Pin.PULL_DOWN)  # GPIO17
 
 # オンボードLED（デバッグ用）
 led = Pin("LED", Pin.OUT)
@@ -214,9 +214,9 @@ def mouth_animation():
             time.sleep(0.1)
 
 # ==================== 起動・停止制御 ====================
-def check_start_button(current_is_running, last_time):
+def check_start(current_is_running, last_time):
     """起動スイッチのチェック（トグルスイッチ用）"""
-    current_state = start_button.value()
+    current_state = start_switch.value()
     current_time = time.ticks_ms()
     
     # チャタリング対策（前回変化から50ms経過していないなら無視）
@@ -251,7 +251,7 @@ def main():
     try:
         while True:
             # 起動ボタンチェック
-            is_running, last_button_time = check_start_button(is_running, last_button_time)
+            is_running, last_button_time = check_start(is_running, last_button_time)
             
             # システム動作中の処理
             if is_running:
