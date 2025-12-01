@@ -120,11 +120,28 @@ def edge_detected_handler():
     """端検出時の処理"""
     print("!!! 端を検出 !!!")
     
-    # ランダム角度生成（100°～260°）
+    # 回転方向をランダムに決定 (1: 時計回り, -1: 反時計回り)
     direction = 1 if random.randint(0, 1) == 1 else -1
-    angle = random.randint(100, 260)
     
-    rotate(direction * angle)
+    # 回転速度 (rotate関数と合わせる)
+    ROTATION_SPEED = 26214
+    
+    # マイクロスイッチがオフになるまで回転
+    print("端から離れるまで回転中...")
+    l_speed = ROTATION_SPEED if direction > 0 else -ROTATION_SPEED
+    r_speed = -ROTATION_SPEED if direction > 0 else ROTATION_SPEED
+    drive(l_speed, r_speed)
+    
+    # センサーが反応(0)している間は待機
+    while edge_sensor.value() == 0:
+        time.sleep(0.01)
+    
+    # オフになったら、そこから10°～170°追加回転
+    additional_angle = random.randint(10, 170)
+    print(f"追加回転: {additional_angle}°")
+    
+    # そのまま指定角度分回転（rotate関数を使用）
+    rotate(direction * additional_angle)
     
     # 回転後、前進再開
     if is_running:
