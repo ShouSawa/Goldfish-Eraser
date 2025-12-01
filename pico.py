@@ -160,10 +160,7 @@ def check_magnetic_sensors():
             led.value(1) # LED点灯
             rotate(90)
             led.value(0) # LED消灯
-            if is_running:
-                start_forward()
-            time.sleep(0.5)  # 連続検出防止
-            return True
+            return
         
         # センサー②：反時計回り90°
         if magnetic_sensor_2.value() == 0:
@@ -172,10 +169,7 @@ def check_magnetic_sensors():
             led.value(1) # LED点灯
             rotate(-90)
             led.value(0) # LED消灯
-            if is_running:
-                start_forward()
-            time.sleep(0.5)
-            return True
+            return
         
         # センサー③：180°回転
         if magnetic_sensor_3.value() == 0:
@@ -184,12 +178,7 @@ def check_magnetic_sensors():
             led.value(1) # LED点灯
             rotate(180)
             led.value(0) # LED消灯
-            if is_running:
-                start_forward()
-            time.sleep(0.5)
-            return True
-    
-    return False
+            return
 
 # ==================== 口開閉アニメーション ====================
 def mouth_animation():
