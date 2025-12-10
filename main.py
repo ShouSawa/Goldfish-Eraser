@@ -89,7 +89,7 @@ def rotate(angle):
     drive(l_speed, r_speed)
     time.sleep(abs(angle) / 90.0) # 回転し終わるまで待機
     
-    drive(0, 0)
+    start_forward()
     print("回転完了")
 
 # ==================== 端検出処理 ====================
