@@ -113,8 +113,11 @@ def edge_detected_handler():
     while edge_sensor.value() == 0:
         time.sleep(0.01)
     
-    # オフになったら、そこから10°～170°追加回転
-    additional_angle = random.randint(10, 170)
+    # オフになったら、そこから10°～80°または100°～170°追加回転
+    if random.randint(0, 1) == 0:
+        additional_angle = random.randint(10, 80)
+    else:
+        additional_angle = random.randint(100, 170)
     print(f"追加回転: {additional_angle}°")
     
     # そのまま指定角度分回転（rotate関数を使用）
