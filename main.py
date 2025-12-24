@@ -47,6 +47,7 @@ def drive_motor(in1, in2, pwm, speed):
         in1.value(0); in2.value(1)
     else:
         in1.value(0); in2.value(0)
+    print(f"Duty: {abs(speed)}")
     pwm.duty_u16(abs(speed))
 
 def drive(left_speed, right_speed):
