@@ -12,16 +12,10 @@ import _thread
 # ==================== GPIO設定 ====================
 # 走行モジュール（モータードライバ TB6612FNG使用）
 # 右モータ
-motor_ain1 = Pin(2, Pin.OUT)   # GPIO3: 右前進
-motor_ain2 = Pin(3, Pin.OUT)   # GPIO4: 右後退
-motor_right_pwm = PWM(Pin(0))  # GPIO5: 右PWM
-motor_right_pwm.freq(1000)
-
-# 左モータ
-motor_bin1 = Pin(4, Pin.OUT)   # GPIO0: 左前進
-motor_bin2 = Pin(5, Pin.OUT)   # GPIO1: 左後退
-motor_left_pwm = PWM(Pin(1))   # GPIO2: 左PWM
-motor_left_pwm.freq(1000)
+motor_m1a = PWM(Pin(0))  # GPIO0: 右前進用PWM
+motor_m1b = PWM(Pin(1))  # GPIO1: 右後退PWM
+motor_m2a = PWM(Pin(2))  # GPIO2: 左前進PWM
+motor_m2b = PWM(Pin(3))  # GPIO3: 左後退PWM
 
 # 端検出モジュール（マイクロスイッチ）
 edge_sensor = Pin(17, Pin.IN, Pin.PULL_UP)    # GPIO9
@@ -39,21 +33,27 @@ mouth_pwm.freq(50)                # 50Hz
 led = Pin("LED", Pin.OUT)
 
 # ==================== モータ制御関数 ====================
-def drive_motor(in1, in2, pwm, speed):
-    """モータ駆動ヘルパー関数"""
-    if speed > 0:
-        in1.value(1); in2.value(0)
-    elif speed < 0:
-        in1.value(0); in2.value(1)
-    else:
-        in1.value(0); in2.value(0)
-    print(f"Duty: {abs(speed)}")
-    pwm.duty_u16(abs(speed))
+def drive_motor(in1_pwm, in2_pwm, speed):
+    """モータ駆動ヘルパー関数（PWMで速度制御）"""
+    abs_speed = abs(speed)
+    max_duty = 65535
+    
+    if speed > 0:  # 前進
+        in1_pwm.duty_u16(abs_speed)  # IN1にPWM
+        in2_pwm.duty_u16(0)          # IN2をLow
+    elif speed < 0:  # 後退
+        in1_pwm.duty_u16(0)          # IN1をLow
+        in2_pwm.duty_u16(abs_speed)  # IN2にPWM
+    else:  # 停止
+        in1_pwm.duty_u16(0)
+        in2_pwm.duty_u16(0)
+    
+    print(f"Duty: {abs_speed}")
 
 def drive(left_speed, right_speed):
     """左右モータ制御"""
-    drive_motor(motor_ain1, motor_ain2, motor_right_pwm, right_speed)
-    drive_motor(motor_bin1, motor_bin2, motor_left_pwm, left_speed)
+    drive_motor(motor_m1a, motor_m1b, right_speed)
+    drive_motor(motor_m2a, motor_m2b, left_speed)
 
 def set_mouth_angle(angle):
     """サーボモータの角度設定（0〜180度）"""
