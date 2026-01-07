@@ -19,7 +19,7 @@ motor_m2a = PWM(Pin(2))  # GPIO2: 左前進PWM
 motor_m2b = PWM(Pin(3))  # GPIO3: 左後退PWM
 
 # 端検出モジュール（マイクロスイッチ）
-edge_sensor = Pin(17, Pin.IN, Pin.PULL_UP)    # GPIO9
+edge_sensor = Pin(17, Pin.IN)    # GPIO9
 
 # 操作モジュール（磁気センサー：ホールセンサ）
 magnetic_sensor_1 = Pin(6, Pin.IN, Pin.PULL_UP)  # GPIO13: 時計回り90°
@@ -49,7 +49,7 @@ def drive_motor(in1_pwm, in2_pwm, speed):
         in1_pwm.duty_u16(0)
         in2_pwm.duty_u16(0)
     
-    print(f"Duty: {abs_speed}")
+    # print(f"Duty: {abs_speed}")
 
 def drive(left_speed, right_speed):
     """左右モータ制御"""
@@ -75,7 +75,7 @@ def set_mouth_angle(angle):
 def start_forward():
     """前進開始"""
     NORMAL_SPEED = 32768
-    print("走行開始")
+    # print("走行開始")
     drive(NORMAL_SPEED, NORMAL_SPEED)
 
 # ==================== 回転制御 ====================
@@ -89,15 +89,17 @@ def rotate(angle):
     r_speed = -ROTATION_SPEED if angle > 0 else ROTATION_SPEED
     
     drive(l_speed, r_speed)
-    time.sleep(abs(angle) / 90.0) # 回転し終わるまで待機
+    print(abs(angle) / 9.0,"秒回転")
+    time.sleep(abs(angle) / 9.0) # 回転し終わるまで待機
+
+    print("回転終了")
     
     start_forward()
-    print("回転完了")
 
 # ==================== 端検出処理 ====================
 def edge_detected_handler():
     """端検出時の処理"""
-    print("!!! 端を検出 !!!")
+    print("!!! 端を検出 !!! sensor value:", edge_sensor.value())
     
     # 回転方向を時計回りに固定 (1: 時計回り)
     direction = 1
@@ -106,21 +108,21 @@ def edge_detected_handler():
     ROTATION_SPEED = 26214
     
     # マイクロスイッチがオフになるまで回転
-    print("端から離れるまで回転中...")
+    # print("端から離れるまで回転中...")
     l_speed = ROTATION_SPEED
     r_speed = -ROTATION_SPEED
     drive(l_speed, r_speed)
     
-    # センサーが反応(0)している間は待機
-    while edge_sensor.value() == 0:
+    # センサーが反応(1)している間は待機（押下時HIGHに変更）
+    while edge_sensor.value() == 1:
         time.sleep(0.01)
     
+    print("端から離れた")
     # オフになったら、そこから10°～80°または100°～170°追加回転
     if random.randint(0, 1) == 0:
         additional_angle = random.randint(10, 80)
     else:
         additional_angle = random.randint(100, 170)
-    print(f"追加回転: {additional_angle}°")
     
     # そのまま指定角度分回転（rotate関数を使用）
     rotate(direction * additional_angle)
@@ -198,14 +200,16 @@ def main():
     
     try:
         while True:
-            # 端検出チェック
-            if edge_sensor.value() == 0:
+            print(edge_sensor.value())
+
+            # 端検出チェック（押下時HIGHに変更）
+            if edge_sensor.value() == 1:
                 edge_detected_handler()
             
             # 磁気センサーチェック
             check_magnetic_sensors()
             
-            time.sleep(0.1)  # 100msごとにループ
+            time.sleep(0.01)  # 10msごとにループ
             
     except KeyboardInterrupt:
         print("\n=== プログラム終了 ===")
