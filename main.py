@@ -133,7 +133,7 @@ def check_magnetic_sensors():
     
     # センサー①：時計回り90°
     if magnetic_sensor_1.value() == 0:
-        print("磁気センサー1 検出")
+        print("上方")
         drive(0, 0)
         led.value(1) # LED点灯
         rotate(90)
@@ -142,7 +142,7 @@ def check_magnetic_sensors():
     
     # センサー②：反時計回り90°
     if magnetic_sensor_2.value() == 0:
-        print("磁気センサー2 検出")
+        print("下方")
         drive(0, 0)
         led.value(1) # LED点灯
         rotate(-90)
@@ -151,7 +151,7 @@ def check_magnetic_sensors():
     
     # センサー③：180°回転
     if magnetic_sensor_3.value() == 0:
-        print("磁気センサー3 検出")
+        print("後方")
         drive(0, 0)
         led.value(1) # LED点灯
         rotate(180)
@@ -170,6 +170,7 @@ def mouth_animation():
     # 初期化：口を閉じる
     set_mouth_angle(ANGLE_CLOSE)
     time.sleep(1.0) # 起動遅延
+    print("ギミック開始")
     
     while True:
         # 往復動作ループ
