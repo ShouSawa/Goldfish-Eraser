@@ -12,19 +12,20 @@ motor_m2a = PWM(Pin(2))  # GPIO2: 左前進PWM
 motor_m2b = PWM(Pin(3))  # GPIO3: 左後退PWM
 
 # 端検出モジュール（マイクロスイッチ）
-edge_sensor = Pin(17, Pin.IN)    # GPIO9
+edge_sensor = Pin(17, Pin.IN)    # GPIO17
 
 # 操作モジュール（磁気センサー：ホールセンサ）
-magnetic_sensor_1 = Pin(6, Pin.IN, Pin.PULL_UP)  # GPIO13: 時計回り90°
-magnetic_sensor_2 = Pin(7, Pin.IN, Pin.PULL_UP)  # GPIO14: 反時計回り90°
-magnetic_sensor_3 = Pin(8, Pin.IN, Pin.PULL_UP)  # GPIO15: 180°回転
+magnetic_sensor_1 = Pin(6, Pin.IN, Pin.PULL_UP)  # GPIO6: 時計回り90°
+magnetic_sensor_2 = Pin(7, Pin.IN, Pin.PULL_UP)  # GPIO7: 反時計回り90°
+magnetic_sensor_3 = Pin(8, Pin.IN, Pin.PULL_UP)  # GPIO8: 180°回転
 
 # ギミックモジュール（サーボモータ：FEETECH FT90B）
-mouth_pwm = PWM(Pin(14))          # GPIO16: サーボ信号
+mouth_pwm = PWM(Pin(14))          # GPIO14: サーボ信号
 mouth_pwm.freq(50)                # 50Hz
 
 # オンボードLED（デバッグ用）
 led = Pin("LED", Pin.OUT)
+
 
 # ==================== メインループ ====================
 def main():
