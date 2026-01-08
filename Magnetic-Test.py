@@ -3,6 +3,7 @@ import time
 import random
 import _thread
 
+
 # ==================== GPIO設定 ====================
 # 走行モジュール（モータードライバ TB6612FNG使用）
 # 右モータ
@@ -30,16 +31,15 @@ led = Pin("LED", Pin.OUT)
 def main():
     """メインプログラム"""
     
-    # システム起動
-    print("=== システム起動 ===")
-    
     print("メインループ開始")
     
     try:
         while True:
-            print(edge_sensor.value())
+            print("Magnetic Sensor 1:", magnetic_sensor_1.value())
+            print("Magnetic Sensor 2:", magnetic_sensor_2.value())
+            print("Magnetic Sensor 3:", magnetic_sensor_3.value())
 
-            time.sleep(0.1)
+            time.sleep(0.1)  # 10msごとにループ
             
     except KeyboardInterrupt:
         print("\n=== プログラム終了 ===")
@@ -47,5 +47,4 @@ def main():
 # ==================== プログラム開始 ====================
 if __name__ == "__main__":
     main()
-
 
