@@ -1,62 +1,35 @@
-from picozero import Button, Servo, Motor, pico_led
+from picozero import Button
 from time import sleep
 
-# ==================== GPIO設定 ====================
-# 走行モジュール（モータードライバ TB6612FNG使用）
-# picozeroのMotorクラスは forward/backward ピンを指定します
-# 内部でPWM処理が行われるため、速度制御(0.0〜1.0)も可能です
-motor_right = Motor(forward=0, backward=1)  # GPIO0: 右前進, GPIO1: 右後退
-motor_left = Motor(forward=2, backward=3)   # GPIO2: 左前進, GPIO3: 左後退
+# ホールセンサー（磁気センサー）の設定
+# GPIO 6, 7, 8 に接続されている前提
+# picozeroのButtonクラスはデフォルトで内部プルアップが有効
+sensor_6 = Button(6)
+sensor_7 = Button(7)
+sensor_8 = Button(8)
 
-# 端検出モジュール（マイクロスイッチ）
-# GPIO17 (picozeroのButtonはデフォルトでPull-up有効です)
-edge_sensor = Button(17)
+print("--- Magnetic Sensor Test (picozero) ---")
+print("Reading GPIO 6, 7, 8...")
 
-# 操作モジュール（磁気センサー：ホールセンサ）
-# ホールICは通常Pull-upで使用し、磁石接近でLow(Active)になります
-magnetic_sensor_1 = Button(6)  # GPIO6: 時計回り90°
-magnetic_sensor_2 = Button(7)  # GPIO7: 反時計回り90°
-magnetic_sensor_3 = Button(8)  # GPIO8: 180°回転
+try:
+    while True:
+        # 各センサーの状態を取得 (1: 検出中/押された, 0: 非検出)
+        val_6 = sensor_6.value
+        val_7 = sensor_7.value
+        val_8 = sensor_8.value
+        
+        # 状態をコンソールに出力
+        # 検出時は "ON", 非検出時は "OFF" と表示
+        status_6 = "ON " if val_6 else "OFF"
+        status_7 = "ON " if val_7 else "OFF"
+        status_8 = "ON " if val_8 else "OFF"
+        
+        print(f"GPIO6: {status_6} | GPIO7: {status_7} | GPIO8: {status_8}")
+        
+        # 読みやすさのために少し待機
+        sleep(0.1)
 
-# ギミックモジュール（サーボモータ：FEETECH FT90B）
-# GPIO14
-mouth_servo = Servo(14)
-
-# ==================== コールバック関数 ====================
-def on_magnet_1():
-    print("Magnetic Sensor 1 Detected! (Clockwise)")
-    pico_led.blink(on_time=0.1, off_time=0.1, n=1)
-
-def on_magnet_2():
-    print("Magnetic Sensor 2 Detected! (Quarter Turn)")
-    pico_led.blink(on_time=0.1, off_time=0.1, n=1)
-    
-def on_magnet_3():
-    print("Magnetic Sensor 3 Detected! (Half Turn)")
-    pico_led.blink(on_time=0.1, off_time=0.1, n=2)
-
-# ==================== イベント登録 ====================
-# when_pressed はボタンが押された(Lowになった)ときに発火します
-magnetic_sensor_1.when_pressed = on_magnet_1
-magnetic_sensor_2.when_pressed = on_magnet_2
-magnetic_sensor_3.when_pressed = on_magnet_3
-
-# ==================== メインループ ====================
-def main():
-    """メインプログラム (picozero版)"""
-    print("Magnetic Test Started (picozero version)")
-    print("Waiting for magnets...")
-    
-    try:
-        # イベント駆動なのでループ内は空でOK
-        while True:
-            sleep(1)
-            
-    except KeyboardInterrupt:
-        print("\n=== プログラム終了 ===")
-
-# ==================== プログラム開始 ====================
-if __name__ == "__main__":
-    main()
+except KeyboardInterrupt:
+    print("\nTest stopped by user")
 
 
