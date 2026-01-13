@@ -23,14 +23,6 @@ motor_m1b.freq(1000)
 motor_m2a.freq(1000)
 motor_m2b.freq(1000)
 
-# 端検出モジュール（マイクロスイッチ）
-edge_sensor = Pin(17, Pin.IN, Pin.PULL_DOWN)    # GPIO17
-
-# 操作モジュール（磁気センサー：ホールセンサ）
-magnetic_sensor_1 = Pin(6, Pin.IN, Pin.PULL_UP)  # GPIO6: 時計回り90°
-magnetic_sensor_2 = Pin(7, Pin.IN, Pin.PULL_UP)  # GPIO7: 反時計回り90°
-magnetic_sensor_3 = Pin(8, Pin.IN, Pin.PULL_UP)  # GPIO8: 180°回転
-
 # ギミックモジュール（サーボモータ：FEETECH FT90B）
 mouth_pwm = PWM(Pin(14, Pin.OUT))          # GPIO14: サーボ信号
 mouth_pwm.freq(50)                # 50Hz
@@ -65,6 +57,8 @@ def set_mouth_angle(angle):
     """サーボモータの角度設定（0〜180度）"""
     # FT90B仕様: 500us(0°)〜2500us(180°)
     # 50Hz(20ms)におけるduty_u16換算:
+    # 500us  -> 1638
+    # 2500us -> 8192
     min_duty = 1638
     max_duty = 8192
     
@@ -98,71 +92,6 @@ def rotate(angle):
     print("回転終了")
     
     start_forward()
-
-# ==================== 端検出処理 ====================
-def edge_detected_handler():
-    """端検出時の処理"""
-    print("!!! 端を検出 !!! sensor value:", edge_sensor.value())
-    
-    # 回転方向を時計回りに固定 (1: 時計回り)
-    direction = 1
-    
-    # 回転速度 (rotate関数と合わせる)
-    ROTATION_SPEED = 26214
-    
-    # マイクロスイッチがオフになるまで回転
-    # print("端から離れるまで回転中...")
-    l_speed = ROTATION_SPEED
-    r_speed = -ROTATION_SPEED
-    drive(l_speed, r_speed)
-    
-    # センサーが反応(1)している間は待機（押下時HIGHに変更）
-    while edge_sensor.value() == 1:
-        time.sleep(0.01)
-    
-    print("端から離れた")
-    # オフになったら、そこから10°～80°または100°～170°追加回転
-    if random.randint(0, 1) == 0:
-        additional_angle = random.randint(10, 80)
-    else:
-        additional_angle = random.randint(100, 170)
-    
-    # そのまま指定角度分回転（rotate関数を使用）
-    rotate(direction * additional_angle)
-    
-    # 回転後、前進再開
-    start_forward()
-
-# ==================== 磁気センサー処理 ====================
-def check_magnetic_sensors():
-    """磁気センサーの確認"""
-    
-    # センサー①：時計回り90°
-    if magnetic_sensor_1.value() == 0:
-        print("上方")
-        drive(0, 0)
-        led.value(1) # LED点灯
-        rotate(90)
-        led.value(0) # LED消灯
-        return
-    
-    # センサー②：反時計回り90°
-    if magnetic_sensor_2.value() == 0:
-        print("下方")
-        drive(0, 0)
-        led.value(1) # LED点灯
-        rotate(-90)
-        led.value(0) # LED消灯
-        return
-    
-    # センサー③：180°回転
-    if magnetic_sensor_3.value() == 0:
-        print("後方")
-        drive(0, 0)
-        led.value(1) # LED点灯
-        rotate(180)
-        led.value(0) # LED消灯
-        return
 
 # ==================== 口開閉アニメーション ====================
 def mouth_animation():
@@ -203,14 +132,6 @@ def main():
     
     try:
         while True:
-            print(edge_sensor.value())
-
-            # 端検出チェック（押下時HIGHに変更）
-            if edge_sensor.value() == 1:
-                edge_detected_handler()
-            
-            # 磁気センサーチェック
-            check_magnetic_sensors()
             
             time.sleep(0.1)  # 10msごとにループ
             
