@@ -18,10 +18,10 @@ motor_m1b = PWM(Pin(1, Pin.OUT))  # GPIO1: 右後退PWM
 motor_m2a = PWM(Pin(2, Pin.OUT))  # GPIO2: 左前進PWM
 motor_m2b = PWM(Pin(3, Pin.OUT))  # GPIO3: 左後退PWM
 
-motor_m1a.freq(1000)
-motor_m1b.freq(1000)
-motor_m2a.freq(1000)
-motor_m2b.freq(1000)
+motor_m1a.freq(500)
+motor_m1b.freq(500)
+motor_m2a.freq(500)
+motor_m2b.freq(500)
 
 # 端検出モジュール（マイクロスイッチ）
 edge_sensor = Pin(17, Pin.IN, Pin.PULL_DOWN)    # GPIO17
@@ -70,6 +70,7 @@ def set_mouth_angle(angle):
     
     if angle < 0: angle = 0
     if angle > 180: angle = 180
+
     
     duty = int(min_duty + (max_duty - min_duty) * angle / 180)
     mouth_pwm.duty_u16(duty)
@@ -92,8 +93,8 @@ def rotate(angle):
     r_speed = -ROTATION_SPEED if angle > 0 else ROTATION_SPEED
     
     drive(l_speed, r_speed)
-    print(abs(angle) / 9.0,"秒回転")
-    time.sleep(abs(angle) / 9.0) # 回転し終わるまで待機
+    print(abs(angle) / 90.0,"秒回転")
+    time.sleep(abs(angle) / 90.0) # 回転し終わるまで待機
 
     print("回転終了")
     
@@ -175,7 +176,6 @@ def mouth_animation():
 
     # 初期化：口を閉じる
     set_mouth_angle(ANGLE_CLOSE)
-    time.sleep(1.0) # 起動遅延
     print("ギミック開始")
     
     while True:
@@ -203,8 +203,6 @@ def main():
     
     try:
         while True:
-            print(edge_sensor.value())
-
             # 端検出チェック（押下時HIGHに変更）
             if edge_sensor.value() == 1:
                 edge_detected_handler()
