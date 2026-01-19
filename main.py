@@ -85,16 +85,17 @@ def start_forward():
 # ==================== 回転制御 ====================
 def rotate(angle, edge):
     """回転制御（正:時計回り, 負:反時計回り）"""
-    ROTATION_SPEED = 26214
+    LEFT_ROTATION_SPEED = 26214
+    RIGHT_ROTATION_SPEED = 26214
     print(f"回転 {angle}°")
     
     if edge:
         l_speed = 0
     else:
-        l_speed = ROTATION_SPEED if angle > 0 else -ROTATION_SPEED
+        l_speed = LEFT_ROTATION_SPEED if angle > 0 else -LEFT_ROTATION_SPEED
 
     # 時計回り: 左正転・右逆転, 反時計: 左逆転・右正転
-    r_speed = -ROTATION_SPEED if angle > 0 else ROTATION_SPEED
+    r_speed = -RIGHT_ROTATION_SPEED if angle > 0 else RIGHT_ROTATION_SPEED
     
     drive(l_speed, r_speed)
     print(abs(angle) / 90.0,"秒回転")
@@ -133,7 +134,7 @@ def edge_detected_handler():
         additional_angle = random.randint(100, 170)
     
     # そのまま指定角度分回転（rotate関数を使用）
-    rotate(direction * additional_angle, true)
+    rotate(direction * additional_angle, True)
     
     # 回転後、前進再開
     start_forward()
@@ -147,7 +148,7 @@ def check_magnetic_sensors():
         print("上方")
         drive(0, 0)
         led.value(1) # LED点灯
-        rotate(90)
+        rotate(90, False)
         led.value(0) # LED消灯
         return
     
@@ -156,7 +157,7 @@ def check_magnetic_sensors():
         print("下方")
         drive(0, 0)
         led.value(1) # LED点灯
-        rotate(-90)
+        rotate(-90, False)
         led.value(0) # LED消灯
         return
     
@@ -165,7 +166,7 @@ def check_magnetic_sensors():
         print("後方")
         drive(0, 0)
         led.value(1) # LED点灯
-        rotate(180)
+        rotate(180, False)
         led.value(0) # LED消灯
         return
 
