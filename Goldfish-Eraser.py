@@ -9,31 +9,30 @@ import time
 import random
 import _thread
 
-
 # ==================== GPIO設定 ====================
 # 走行モジュール（モータードライバ TB6612FNG使用）
 # 右モータ
-motor_m1a = PWM(Pin(0, Pin.OUT))  # GPIO0: 右前進用PWM
-motor_m1b = PWM(Pin(1, Pin.OUT))  # GPIO1: 右後退PWM
-motor_m2a = PWM(Pin(2, Pin.OUT))  # GPIO2: 左前進PWM
-motor_m2b = PWM(Pin(3, Pin.OUT))  # GPIO3: 左後退PWM
+motor_1_forward = PWM(Pin(0, Pin.OUT))  # GPIO0: 左前進用PWM
+motor_1_backward = PWM(Pin(1, Pin.OUT))  # GPIO1: 左後退PWM
+motor_2_backward = PWM(Pin(2, Pin.OUT))  # GPIO2: 右後退PWM
+motor_2_forward = PWM(Pin(3, Pin.OUT))  # GPIO3: 右前進PWM
 
-motor_m1a.freq(500)
-motor_m1b.freq(500)
-motor_m2a.freq(500)
-motor_m2b.freq(500)
+motor_1_forward.freq(500)
+motor_1_backward.freq(500)
+motor_2_backward.freq(500)
+motor_2_forward.freq(500)
 
 # 端検出モジュール（マイクロスイッチ）
 edge_sensor = Pin(17, Pin.IN, Pin.PULL_DOWN)    # GPIO17
 
 # 操作モジュール（磁気センサー：ホールセンサ）
-magnetic_sensor_1 = Pin(26, Pin.IN, Pin.PULL_DOWN)  # GPIO6: 時計回り90°
-magnetic_sensor_2 = Pin(27, Pin.IN, Pin.PULL_DOWN)  # GPIO7: 反時計回り90°
-magnetic_sensor_3 = Pin(28, Pin.IN, Pin.PULL_DOWN)  # GPIO8: 180°回転
+magnetic_sensor_bottom = Pin(26, Pin.IN, Pin.PULL_DOWN)  # GPIO6: 下　反時計回り90° 2
+magnetic_sensor_top = Pin(27, Pin.IN, Pin.PULL_DOWN)  # GPIO7: 上　時計回り90°　1
+magnetic_sensor_behind = Pin(28, Pin.IN, Pin.PULL_DOWN)  # GPIO8: 後方　180°回転 3
 
 # ギミックモジュール（サーボモータ：FEETECH FT90B）
-mouth_pwm = PWM(Pin(14, Pin.OUT))          # GPIO14: サーボ信号
-mouth_pwm.freq(50)                # 50Hz
+mouth_pwm = PWM(Pin(14, Pin.OUT)) # GPIO14: サーボ信号
+mouth_pwm.freq(50) # 50Hz
 
 # オンボードLED（デバッグ用）
 led = Pin("LED", Pin.OUT)
@@ -58,8 +57,8 @@ def drive_motor(in1_pwm, in2_pwm, speed):
 
 def drive(left_speed, right_speed):
     """左右モータ制御"""
-    drive_motor(motor_m1a, motor_m1b, right_speed)
-    drive_motor(motor_m2a, motor_m2b, left_speed)
+    drive_motor(motor_1_forward, motor_1_backward, right_speed)
+    drive_motor(motor_2_backward, motor_2_forward, left_speed)
 
 def set_mouth_angle(angle):
     """サーボモータの角度設定（0〜180度）"""
@@ -71,7 +70,6 @@ def set_mouth_angle(angle):
     if angle < 0: angle = 0
     if angle > 180: angle = 180
 
-    
     duty = int(min_duty + (max_duty - min_duty) * angle / 180)
     mouth_pwm.duty_u16(duty)
 
@@ -145,8 +143,8 @@ def edge_detected_handler():
 def check_magnetic_sensors():
     """磁気センサーの確認"""
     
-    # センサー①：時計回り90°
-    if magnetic_sensor_1.value() == 1:
+    # センサー①：反時計回り90°
+    if magnetic_sensor_bottom.value() == 1:
         print("下方")
         drive(0, 0)
         led.value(1) # LED点灯
@@ -154,8 +152,8 @@ def check_magnetic_sensors():
         led.value(0) # LED消灯
         return
     
-    # センサー②：反時計回り90°
-    if magnetic_sensor_2.value() == 1:
+    # センサー②：時計回り90°
+    if magnetic_sensor_top.value() == 1:
         print("上方")
         drive(0, 0)
         led.value(1) # LED点灯
@@ -164,7 +162,7 @@ def check_magnetic_sensors():
         return
     
     # センサー③：180°回転
-    if magnetic_sensor_3.value() == 1:
+    if magnetic_sensor_behind.value() == 1:
         print("後方")
         drive(0, 0)
         led.value(1) # LED点灯
