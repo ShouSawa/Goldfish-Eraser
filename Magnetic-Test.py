@@ -21,9 +21,9 @@ motor_m2b.freq(500)
 edge_sensor = Pin(17, Pin.IN, Pin.PULL_DOWN)    # GPIO17
 
 # 操作モジュール（磁気センサー：ホールセンサ）
-magnetic_sensor_1 = ADC(26)  # GPIO26: 時計回り90°
-magnetic_sensor_2 = ADC(27)  # GPIO27: 反時計回り90°
-magnetic_sensor_3 = ADC(28)  # GPIO28: 180°回転
+magnetic_sensor_1 = Pin(26, Pin.IN, Pin.PULL_DOWN)  # GPIO26: 時計回り90°
+magnetic_sensor_2 = Pin(27, Pin.IN, Pin.PULL_DOWN)  # GPIO26: 時計回り90°
+magnetic_sensor_3 = Pin(28, Pin.IN, Pin.PULL_DOWN)  # GPIO26: 時計回り90°
 
 # ギミックモジュール（サーボモータ：FEETECH FT90B）
 mouth_pwm = PWM(Pin(14, Pin.OUT))          # GPIO14: サーボ信号
@@ -34,19 +34,9 @@ led = Pin("LED", Pin.OUT)
 
 try:
     while True:
-        # アナログ値を読み取り（0-65535の範囲）
-        value1 = magnetic_sensor_1.read_u16()
-        value2 = magnetic_sensor_2.read_u16()
-        value3 = magnetic_sensor_3.read_u16()
-    
-        # 電圧に変換（0-3.3V）
-        voltage1 = value1 * 3.3 / 65535
-        voltage2 = value2 * 3.3 / 65535
-        voltage3 = value3 * 3.3 / 65535
-    
-        print(f"Sensor1: {value1} ({voltage1:.2f}V)")
-        print(f"Sensor2: {value2} ({voltage2:.2f}V)")
-        print(f"Sensor3: {value3} ({voltage3:.2f}V)")
+        print("Magnetic Sensor States1:",magnetic_sensor_1.value())
+        print("Magnetic Sensor States2:",magnetic_sensor_2.value())
+        print("Magnetic Sensor States3:",magnetic_sensor_3.value())
         print("---")
         
         time.sleep(0.5)
